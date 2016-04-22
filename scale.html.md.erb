@@ -1,0 +1,68 @@
+---
+title: Scale the App
+owner: Konstantinos 
+---
+
+<strong><%= modified_date %></strong>
+
+Right now, your app is running as a single instance with 256 of memory.
+
+You can check how many instances are running and how much memory they have using the `cf scale` command:
+
+<pre class="terminal">
+--$ cf scale go-demo-app
+Showing current scale of app go-demo-app in org sandbox / space karampok as user@mydomain.com...
+OK
+
+memory: 256M
+disk: 1G
+instances: 1
+</pre>
+
+By default, your app is deployed as one instance. Each instance runs in a separate container and gets the set amount of memory.
+
+## Scaling Horizontally
+
+Scaling an application horizontally on <%= vars.product_full %> is equivalent to changing the number of instances that are running. Scale the number of instances to 3:
+
+<pre class="terminal">
+$ cf scale go-demo-app  -i 3
+Scaling app my-node-app in org MyOrg / space MySpace as user@mydomain.com...
+OK
+</pre>
+
+## Scaling Vertically
+
+Scaling an application vertically on <%= vars.product_full %> is equivalent to changing the amount of memory each instance has. Scale the amount of memory to 256MB:
+
+<pre class="terminal">
+--$ cf scale go-demo-app -m 512M
+
+This will cause the app to restart. Are you sure you want to scale go-demo-app?> yes
+
+Scaling app go-demo-app in org sandbox / space karampok as user@mydomain.com...
+OK
+Stopping app go-demo-app in org sandbox / space karampok as user@mydomain.com...
+OK
+
+...
+
+requested state: started
+instances: 3/3
+usage: 512M x 3 instances
+urls: go-demo-app.scapp.io
+last uploaded: Fri Apr 22 13:23:45 UTC 2016
+stack: unknown
+buildpack: binary_buildpack
+
+     state     since                    cpu    memory         disk         details
+     #0   running   2016-04-22 03:53:19 PM   0.0%   3.5M of 512M   6.6M of 1G
+     ##1   running   2016-04-22 03:53:20 PM   0.0%   3.5M of 512M   6.6M of 1G
+     ##2   running   2016-04-22 03:53:21 PM   0.0%   3.6M of 512M   6.6M of 1G
+</pre>
+
+The last statement shows a summary of the three instances with a memory cap of 512 each that we now have.
+
+<div style="text-align:center;margin:3em;">
+  <a href="./dependencies.html" class="btn btn-primary">I know how to scale my App</a>
+</div>
