@@ -1,0 +1,32 @@
+---
+title: Push Local Changes
+owner: Konstantinos 
+---
+
+<strong><%= modified_date %></strong>
+
+
+In this step you’ll learn how to propagate a local change to the application through to App Cloud. As a simple change, we’ll modify the title which the app shows.
+Change the return value of the defaultHandler in main.go file
+
+<pre class="terminal">
+$ sed -i.bak 's/swisscom/awesome/g' main.go
+</pre>
+
+
+Now test the change locally 
+<pre class="terminal">
+make localpush
+</pre>
+
+
+Now deploy. All you need to do is cf push again:
+<pre class="terminal">
+make cloudpush
+</pre>
+
+Finally, check that everything is working by visiting your app's URL from your web browser.
+
+<div style="text-align:center;margin:3em;">
+  <a href="./environment.html" class="btn btn-primary">I can push local changes</a>
+</div>
