@@ -1,6 +1,6 @@
 ---
 title: View Logs
-owner: Konstantinos 
+owner: Konstantinos Karampogias
 ---
 
 <strong><%= modified_date %></strong>
@@ -10,11 +10,11 @@ owner: Konstantinos
 View information about your running app using one of the logging commands, `cf logs`:
 
 <pre class="terminal">
-$ cf logs my-demo-app 
-Connected, tailing logs for app my-node-app in org MyOrg / space MySpace as user@mydomain.com...
+$ cf logs my-go-app
+Connected, tailing logs for app my-go-app in org MyOrg / space MySpace as user@mydomain.com...
 
-2016-04-22T15:57:13.48+0200 [RTR/1]      OUT go-demo-app.scapp.io - [22/04/2016:13:57:13 +0000] "GET / HTTP/1.1" 200 0 22 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.112 Safari/537.36" 178.197.231.93:46918 x_forwarded_for:"-" x_forwarded_proto:"http" vcap_request_id:2293d02c-79b7-4c73-50b6-06e5b90e3788 response_time:0.00192374 app_id:5bc25f0e-48f4-41f0-9ea1-d01e643edf0d
-2016-04-22T15:57:14.24+0200 [RTR/1]      OUT go-demo-app.scapp.io - [22/04/2016:13:57:14 +0000] "GET /favicon.ico HTTP/1.1" 200 0 22 "http://go-demo-app.scapp.io/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.112 Safari/537.36" 178.197.231.93:46918 x_forwarded_for:"-" x_forwarded_proto:"http" vcap_request_id:8406bde9-b3cd-454b-4ff3-7fd609b16807 response_time:0.001859053 app_id:5bc25f0e-48f4-41f0-9ea1-d01e643edf0d
+2016-04-22T15:57:13.48+0200 [RTR/1]      OUT my-random-hostname.scapp.io - [22/04/2016:13:57:13 +0000] "GET / HTTP/1.1" 200 0 22 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.112 Safari/537.36" 178.197.231.93:46918 x_forwarded_for:"-" x_forwarded_proto:"http" vcap_request_id:2293d02c-79b7-4c73-50b6-06e5b90e3788 response_time:0.00192374 app_id:5bc25f0e-48f4-41f0-9ea1-d01e643edf0d
+2016-04-22T15:57:14.24+0200 [RTR/1]      OUT my-random-hostname.scapp.io - [22/04/2016:13:57:14 +0000] "GET /favicon.ico HTTP/1.1" 200 0 22 "http://my-random-hostname.scapp.io/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.112 Safari/537.36" 178.197.231.93:46918 x_forwarded_for:"-" x_forwarded_proto:"http" vcap_request_id:8406bde9-b3cd-454b-4ff3-7fd609b16807 response_time:0.001859053 app_id:5bc25f0e-48f4-41f0-9ea1-d01e643edf0d
 </pre>
 
 Visit your application in the browser, to see log messages being generated.
@@ -24,7 +24,7 @@ Press `Ctrl+C` to stop streaming the logs.
 You can use
 
 <pre class="terminal">
-$ cf logs my-demo-app --recent
+$ cf logs my-go-app --recent
 </pre>
 
 to get the most recent logs.

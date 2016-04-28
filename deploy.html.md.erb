@@ -1,34 +1,30 @@
 ---
 title: Deploy the App
-owner: Konstantinos 
+owner: Konstantinos Karampogias
 ---
 
 <strong><%= modified_date %></strong>
 
-In this step, you will deploy the app to the Swisscom Application Cloud.
+In this step, you will deploy the app to <%= vars.product_full %>.
 
-Push your app to the cloud by executing the following command and replacing the
-“my-random-hostname” with your own hostname. This will be part of the URL your
-app will be reached from and it has to be globally unique so be creative. The
-`-m 128M` tells Cloud Foundry to use 128MB of memory for our app which should be
-plenty.
+Push your app to the cloud by executing the following command and replacing the “my-random-hostname” with your own hostname. This will be part of the URL your app will be reached at and it has to be globally unique so be creative. The `-m 128M` tells Cloud Foundry to use 128MB of memory for our app which should be plenty.
 
 <pre class="terminal">
---$ cf push my-demo-app -m 128M -n <randomname>  -b binary_buildpack -c './bin/gocf'
-Creating app my-demo-app in org MyOrg / space MySpace as user@mydomain.com...
+$ cf push my-go-app -m 128M -n my-random-hostname -b binary_buildpack -c './bin/gocf'
+Creating app my-go-app in org MyOrg / space MySpace as user@mydomain.com...
 OK
 
-Using route gobin.scapp.io
-Binding gobin.scapp.io to my-demo-app...
+Using route my-random-hostname.scapp.io
+Binding my-random-hostname.scapp.io to my-go-app...
 OK
 
-Uploading my-demo-app...
-Uploading app files from: /Users/taakako1/gospace/src/github.com/swisscom/cf-sample-app-go
+Uploading my-go-app...
+Uploading app files from: /.../github.com/swisscom/cf-sample-app-go
 Uploading 3.5K, 6 files
 Done uploading
 OK
 
-Starting app my-demo-app in org MyOrg / space MySpace as user@mydomain.com...
+Starting app my-go-app in org MyOrg / space MySpace as user@mydomain.com...
 Downloading binary_buildpack...
 Downloaded binary_buildpack
 Creating container
@@ -52,15 +48,15 @@ App started
 
 OK
 
-App my-demo-app was started using this command `./bin/gocf`
+App my-go-app was started using this command `./bin/gocf`
 
-Showing health and status for app my-demo-app in org MyOrg / space MySpace as user@mydomain.com...
+Showing health and status for app my-go-app in org MyOrg / space MySpace as user@mydomain.com...
 OK
 
 requested state: started
 instances: 1/1
 usage: 128M x 1 instances
-urls: randomname.scapp.io
+urls: my-random-hostname.scapp.io
 last uploaded: Wed Apr 27 14:41:48 UTC 2016
 stack: unknown
 buildpack: binary_buildpack
@@ -72,29 +68,26 @@ buildpack: binary_buildpack
 The application is now deployed. Ensure that the app is running:
 
 <pre class="terminal">
-
---$ cf app  my-demo-app
-
-...
+$ cf app my-go-app
+Showing health and status for app my-go-app in org MyOrg / space MySpace as user@mydomain.com...
+OK
 
 requested state: started
 instances: 1/1
 usage: 128M x 1 instances
-urls: gobin.scapp.io
+urls: my-random-hostname.scapp.io
 last uploaded: Wed Apr 27 14:41:48 UTC 2016
 stack: cflinuxfs2
 buildpack: binary_buildpack
 
      state     since                    cpu    memory         disk         details
 #0   running   2016-04-27 04:42:01 PM   0.0%   2.9M of 128M   7.6M of 1G
-
 </pre>
 
-Now visit the app at randomname.scapp.io to verify that is working. You can
-find the URL in the `urls` property of the statement above.
+Now visit the app at the URL. You can find the URL in the `urls` property of the statement above.
 
 <pre class="terminal">
---$ curl gobin.scapp.io
+$ curl my-random-hostname.scapp.io
 hello Swisscom cloud!
 </pre>
 
