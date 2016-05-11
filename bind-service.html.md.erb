@@ -1,0 +1,60 @@
+---
+title: Bind a Service to Your App
+owner: Konstantinos Karampogias
+---
+
+<strong><%= modified_date %></strong>
+
+The <a href="../service-offerings/index.html" target="_blank">service marketplace</a> has a large number of data stores, from Redis and MongoDB, to MariaDB (fork of MySQL) and RabbitMQ. You can run `cf marketplace` to get an overview. In this step you will add a small MongoDB database to your app.
+
+Create the database:
+
+<pre class="terminal">
+$ cf create-service mongodb small my-mongodb
+Creating service instance my-mongodb in org MyOrg / space MySpace as user@mydomain.com...
+OK
+
+Create in progress. Use 'cf services' or 'cf service my-mongodb' to check operation status.
+
+Attention: The plan `small` of service `mongodb` is not free.  The instance `my-mongodb` will incur a cost.  Contact your administrator if you think this is in error.
+</pre>
+
+This creates a small MongoDB database for you which we now have to bind to our application. Binding means that the credentials and URL of the service will be written dynamically into the environment variables of the app as `VCAP_SERVICES` and can hence be used directly from there.
+
+Let's bind the new service to our existing application:
+
+<pre class="terminal">
+$ cf bind-service my-go-app my-mongodb
+Binding service my-mongodb to app my-go-app in org MyOrg / space MySpace as user@mydomain.com...
+OK
+TIP: Use 'cf restage my-go-app' to ensure your env variable changes take effect
+</pre>
+
+<p class="note">
+  <strong>Note</strong>: If you are getting <code>Server error, status code: 409</code>, please try again after a couple of minutes. It takes a while to spin up that MongoDB for you.
+</p>
+
+After that we restage the application as suggested so that it includes the new credentials in its environment variables:
+
+<pre class="terminal">
+$ cf restage my-go-app
+Restaging app my-app in org MyOrg / space MySpace as user@mydomain.com...
+-----> Downloaded app package (8.0K)
+-------> Buildpack version 1.5.8
+-----> Creating runtime environment
+
+...
+</pre>
+
+Now we want to consume our new MongoDB from within our application. Use
+...
+
+<pre class="terminal">
+$ cf push my-go-app
+</pre>
+
+You can access other services like Redis or MariaDB in a similar matter, simply by binding them to your app and accessing them through the environment variables.
+
+<div style="text-align:center;padding:3em;">
+  <a href="./manifest.html" class="btn btn-primary">I've bound a service to my App</a>
+</div>
