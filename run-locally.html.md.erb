@@ -5,10 +5,10 @@ owner: Konstantinos Karampogias
 
 <strong><%= modified_date %></strong>
 
-Now start your application locally
+Now start your application locally.
 Given that Docker is installed on your system, you can run the web app locally exactly as it would run in the cloud.
 
-Firstly we build the binary in the ELF 64-bit LSB format:
+Firstly we build the binary in the ELF 64-bit LSB format as before:
 
 <pre class="terminal">
 $ GOARCH=amd64 GOOS=linux go build -ldflags "-X main.buildstamp=`date '+%Y-%m-%d_%H:%M:%S'` -X main.githash=`git rev-parse HEAD`" -o ./bin/gocf
@@ -35,11 +35,6 @@ hello swisscom cloud!
 _For Windows or OS X systems, you'll have to use the Docker Machine IP._
 
 To stop the app from running locally, in the CLI, press `Ctrl+C` to exit.
-
-Secondly we inspect the `manifest.yml` file located at top level dir of the project.
-
-You can change all of the attributes listed in this file, if necessary.
-Important here is the `path` attribute because it indicates what will be uploaded to the cloud, everything within that folder. In our case there is only a binary which was built manually. Also the `host` should change accordingly, it has to be globally unique so be creative because will be part of the URL that your app can be reached at.
 
 
 <div style="text-align:center;margin:3em;">
