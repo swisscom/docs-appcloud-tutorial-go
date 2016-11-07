@@ -7,48 +7,30 @@ owner: Tobias Fuhrimann
 
 In this step, you will deploy the app to <%= vars.product_full %>.
 
-Push your app to the cloud by executing the following command and replacing the “my-random-hostname” with your own hostname. This will be part of the URL your app will be reached at and it has to be globally unique so be creative. The `-m 64M` tells Cloud Foundry to use 64MB of memory for our app which should be plenty. The `-b` flag is used to specify the buildpack to be used and the `-c` flag is used to specify the start command for our app.
+Push your app to the cloud by executing the following command and replacing the “my-random-hostname” with your own hostname. This will be part of the URL your app will be reached at and it has to be globally unique so be creative. The `-m 64M` tells Cloud Foundry to use 64MB of memory for our app which should be plenty.
 
 <pre class="terminal">
-$ cf push my-go-app -m 64M -n my-random-hostname -b binary_buildpack -c './bin/gocf'
+$ cf push my-go-app -m 64M -n my-random-hostname
 Creating app my-go-app in org MyOrg / space MySpace as user@mydomain.com...
 OK
 
-Using route my-random-hostname.scapp.io
+Creating route my-random-hostname.scapp.io...
+OK
+
 Binding my-random-hostname.scapp.io to my-go-app...
 OK
 
 Uploading my-go-app...
-Uploading app files from: /.../github.com/swisscom/cf-sample-app-go
-Uploading 3.5K, 6 files
+Uploading app files from: /Users/taafuto1/go/src/github.com/swisscom/cf-sample-app-go
+Uploading 912B, 3 files
 Done uploading
 OK
 
-Starting app my-go-app in org MyOrg / space MySpace as user@mydomain.com...
-Downloading binary_buildpack...
-Downloaded binary_buildpack
-Creating container
-Successfully created container
-Downloading app package...
-Downloaded app package (1.9M)
-Staging...
-Exit status 0
-Staging complete
-Uploading droplet, build artifacts cache...
-Uploading droplet...
-Uploading build artifacts cache...
-Uploaded build artifacts cache (108B)
-Uploaded droplet (1.9M)
-Uploading complete
-
-1 of 1 instances running
-
-App started
-
+...
 
 OK
 
-App my-go-app was started using this command `./bin/gocf`
+App my-go-app was started using this command `cf-sample-app-go`
 
 Showing health and status for app my-go-app in org MyOrg / space MySpace as user@mydomain.com...
 OK
@@ -57,12 +39,12 @@ requested state: started
 instances: 1/1
 usage: 64M x 1 instances
 urls: my-random-hostname.scapp.io
-last uploaded: Wed Apr 27 14:41:48 UTC 2016
-stack: unknown
-buildpack: binary_buildpack
+last uploaded: Mon Nov 7 13:59:18 UTC 2016
+stack: cflinuxfs2
+buildpack: Go
 
-     state     since                    cpu    memory      disk      details
-#0   running   2016-04-27 04:42:01 PM   0.0%   0 of 64M   0 of 1G
+     state     since                    cpu    memory        disk         details
+#0   running   2016-11-07 02:59:51 PM   0.0%   3.3M of 64M   8.7M of 1G
 </pre>
 
 The application is now deployed. Ensure that the app is running:
@@ -76,20 +58,26 @@ requested state: started
 instances: 1/1
 usage: 64M x 1 instances
 urls: my-random-hostname.scapp.io
-last uploaded: Wed Apr 27 14:41:48 UTC 2016
+last uploaded: Mon Nov 7 13:59:18 UTC 2016
 stack: cflinuxfs2
-buildpack: binary_buildpack
+buildpack: Go
 
-     state     since                    cpu    memory         disk         details
-#0   running   2016-04-27 04:42:01 PM   0.0%   2.9M of 64M   7.6M of 1G
+     state     since                    cpu    memory      disk         details
+#0   running   2016-11-07 02:59:51 PM   0.0%   7M of 64M   8.7M of 1G
 </pre>
 
 Now visit the app at the URL. You can find the URL in the `urls` property of the statement above.
 
-<pre class="terminal">
-$ curl my-random-hostname.scapp.io
-Hello Swisscom Cloud!
-</pre>
+## Binary buildpack
+
+By building your app locally using the `go build` command, you can also push your application as a binary file using the <a href="../buildpacks/binary/index.html" target="_blank">Binary buildpack</a>. To do so, execute the following commands:
+
+```bash
+$ GOOS=linux GOARCH=amd64 go build .
+$ cf push my-go-app -b binary_buildpack -c './cf-sample-app-go'
+```
+
+This method allows you to manage dependencies locally and is an alternative to using the standard <a href="../buildpacks/go/index.html" target="_blank">Go buildpack</a>.
 
 <div style="text-align:center;margin:3em;">
   <a href="./logs.html" class="btn btn-primary">I have deployed my App</a>

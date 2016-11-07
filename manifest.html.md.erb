@@ -10,14 +10,18 @@ It's tedious to keep having to specify the app name and other variables each tim
 ```yaml
 ---
 applications:
-- name: go-demo-app
-  buildpack: binary_buildpack
-  memory: 256M
+- name: my-go-app
+  buildpack: go_buildpack
+  memory: 64M
   instances: 1
-  path: ./bin/
-  command: ./gocf
+
+  host: my-random-hostname
+
+  services:
+  - my-redis
+
   env:
-    NODE_ENV: production
+    GOVERSION: go1.7
 ```
 
 The file tells Cloud Foundry that this is an application with the name `my-go-app` and the specifications made above. This means that from now on, you'll be able to push your App with the simple command:

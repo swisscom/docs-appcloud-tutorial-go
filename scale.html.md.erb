@@ -5,7 +5,7 @@ owner: Tobias Fuhrimann
 
 <strong><%= modified_date %></strong>
 
-Currently, your app is running as a single instance with 64MB of memory.
+Currently, your app is running as a single instance with 64 MB of memory.
 
 You can check how many instances are running and how much memory they have using the `cf scale` command:
 
@@ -33,16 +33,16 @@ OK
 
 ## Scaling Vertically
 
-Scaling an application vertically on <%= vars.product_full %> is equivalent to changing the amount of memory each instance has. Scale the amount of memory to 128MB:
+Scaling an application vertically on <%= vars.product_full %> is equivalent to changing the amount of memory each instance has. Scale the amount of memory to 128 MB:
 
 <pre class="terminal">
 $ cf scale my-go-app -m 128M
 
 This will cause the app to restart. Are you sure you want to scale my-go-app?> yes
 
-Scaling app go-demo-app in org MyOrg / space MySpace as user@mydomain.com...
+Scaling app my-go-app in org MyOrg / space MySpace as user@mydomain.com...
 OK
-Stopping app go-demo-app in org MyOrg / space MySpace as user@mydomain.com...
+Stopping app my-go-app in org MyOrg / space MySpace as user@mydomain.com...
 OK
 
 ...

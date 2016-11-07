@@ -7,11 +7,11 @@ owner: Tobias Fuhrimann
 
 <%= vars.product_short %> lets you externalize configuration - storing data such as encryption keys or external resource addresses in <a href="../devguide/deploy-apps/environment-variable.html" target="_blank">environment variables</a>.
 
-At runtime, environment variables are exposed to the application through its environment. You can use these for example to run the app in production mode setting the `NODE_ENV` environment variable.
+At runtime, environment variables are exposed to the application through its environment. You can use these for example to run the app with a different version of Go.
 
 <pre class="terminal">
-$ cf set-env go-demo-app  APP_MODE production
-Setting env variable 'NODE_ENV' to 'production' for app my-node-app in org MyOrg / space MySpace as user@smydomain.com...
+$ cf set-env my-go-app GOVERSION go1.7
+Setting env variable 'GOVERSION' to 'go1.7' for app my-go-app in org MyOrg / space MySpace as user@smydomain.com...
 OK
 TIP: Use 'cf restage' to ensure your env variable changes take effect
 </pre>
@@ -19,8 +19,8 @@ TIP: Use 'cf restage' to ensure your env variable changes take effect
 Then restage your app as suggested using
 
 <pre class="terminal">
-$ cf restage go-demo-app
-Restaging app my-node-app in org MyOrg / space MySpace as user@mydomain.com...
+$ cf restage my-go-app
+Restaging app my-go-app in org MyOrg / space MySpace as user@mydomain.com...
 -----> Downloaded app package (8.0K)
 -----> Downloaded app buildpack cache (2.3M)
 -------> Buildpack version 1.5.8
@@ -28,30 +28,7 @@ Restaging app my-node-app in org MyOrg / space MySpace as user@mydomain.com...
 ...
 </pre>
 
-Verify the ENV
-
-<pre class="terminal">
---$ curl -s  go-demo-app.scapp.io/info|grep APP_MODE
-APP_MODE=production
-</pre>
-
-More information on https://golang.org/pkg/os/#Getenv
-
-Locally envs can be added by modifying the cf.env file we feed in docker.
-
-<pre class="terminal">
---$ cat cf.env |grep MODE
-APP_MODE=PROD
---$ make localpush
-rm -f ./bin/*
-GOARCH=amd64 GOOS=linux go build -ldflags "-X main.buildstamp=`date '+%Y-%m-%d_%H:%M:%S'` -X main.githash=`git rev-parse HEAD`" -o ./bin/gocf
-docker run -v $(pwd)/cf-sample-app-go/bin:/opt/bin  --env-file ./cf.env -p 4000:4000  \
-                -it cloudfoundry/cflinuxfs2 /opt/bin/gocf
-                2016/05/11 13:53:46 Listening at 4000
-
--$ curl -s  localhost:4000/info|grep APP_MODE
-APP_MODE=PROD
-</pre>
+All environment variables are accessed using `os.Getenv("MY_VARIABLE")` from within your Go app.
 
 <div style="text-align:center;margin:3em;">
   <a href="./bind-service.html" class="btn btn-primary">I've set my environment variable</a>
