@@ -1,16 +1,16 @@
 ---
 title: Deploy the App
-owner: Konstantinos Karampogias
+owner: Tobias Fuhrimann
 ---
 
 <strong><%= modified_date %></strong>
 
 In this step, you will deploy the app to <%= vars.product_full %>.
 
-Push your app to the cloud by executing the following command and replacing the “my-random-hostname” with your own hostname. This will be part of the URL your app will be reached at and it has to be globally unique so be creative. The `-m 128M` tells Cloud Foundry to use 128MB of memory for our app which should be plenty.
+Push your app to the cloud by executing the following command and replacing the “my-random-hostname” with your own hostname. This will be part of the URL your app will be reached at and it has to be globally unique so be creative. The `-m 64M` tells Cloud Foundry to use 64MB of memory for our app which should be plenty. The `-b` flag is used to specify the buildpack to be used and the `-c` flag is used to specify the start command for our app.
 
 <pre class="terminal">
-$ cf push my-go-app -m 128M -n my-random-hostname -b binary_buildpack -c './bin/gocf'
+$ cf push my-go-app -m 64M -n my-random-hostname -b binary_buildpack -c './bin/gocf'
 Creating app my-go-app in org MyOrg / space MySpace as user@mydomain.com...
 OK
 
@@ -55,14 +55,14 @@ OK
 
 requested state: started
 instances: 1/1
-usage: 128M x 1 instances
+usage: 64M x 1 instances
 urls: my-random-hostname.scapp.io
 last uploaded: Wed Apr 27 14:41:48 UTC 2016
 stack: unknown
 buildpack: binary_buildpack
 
      state     since                    cpu    memory      disk      details
-#0   running   2016-04-27 04:42:01 PM   0.0%   0 of 128M   0 of 1G
+#0   running   2016-04-27 04:42:01 PM   0.0%   0 of 64M   0 of 1G
 </pre>
 
 The application is now deployed. Ensure that the app is running:
@@ -74,21 +74,21 @@ OK
 
 requested state: started
 instances: 1/1
-usage: 128M x 1 instances
+usage: 64M x 1 instances
 urls: my-random-hostname.scapp.io
 last uploaded: Wed Apr 27 14:41:48 UTC 2016
 stack: cflinuxfs2
 buildpack: binary_buildpack
 
      state     since                    cpu    memory         disk         details
-#0   running   2016-04-27 04:42:01 PM   0.0%   2.9M of 128M   7.6M of 1G
+#0   running   2016-04-27 04:42:01 PM   0.0%   2.9M of 64M   7.6M of 1G
 </pre>
 
 Now visit the app at the URL. You can find the URL in the `urls` property of the statement above.
 
 <pre class="terminal">
 $ curl my-random-hostname.scapp.io
-hello Swisscom cloud!
+Hello Swisscom Cloud!
 </pre>
 
 <div style="text-align:center;margin:3em;">

@@ -1,11 +1,11 @@
 ---
 title: Push Local Changes
-owner: Konstantinos Karampogias
+owner: Tobias Fuhrimann
 ---
 
 <strong><%= modified_date %></strong>
 
-In this step you’ll learn how to propagate a local change to the application to <%= vars.product_full %>. 
+In this step you’ll learn how to propagate a local change to the application to <%= vars.product_full %>.
 As a simple change, we’ll modify the title which the app shows.
 Change the return value of the `defaultHandler` in our `main.go` file
 
@@ -27,7 +27,7 @@ $ curl localhost:4000
 hello awesome cloud!
 </pre>
 
-If everything is okay, we deploy in the cloud. 
+If everything is okay, we deploy in the cloud.
 All you need to do is cf push again:
 <pre class="terminal">
 $ cf push my-go-app -m 128M -n my-random-hostname -b binary_buildpack -c './bin/gocf'

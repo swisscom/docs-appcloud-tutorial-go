@@ -1,54 +1,19 @@
 ---
 title: Prepare the App
-owner: Konstantinos Karampogias
+owner: Tobias Fuhrimann
 ---
 
 <strong><%= modified_date %></strong>
 
-In this step, you will prepare a simple Go application that can be deployed to <%= vars.product_full %> as a binary.
-
-Execute the following command to fetch the application code locally (ensure `$GOPATH` is set up correctly):
-
-<pre class="terminal">
-$ go get github.com/swisscom/cf-sample-app-go.git
-</pre>
-
-You now have a git repository that contains a minimal web application.
-
-```go
-...
-
-func main() {
-	var port string
-	if port = os.Getenv("PORT"); len(port) == 0 {
-		port = "4000"
-	}
-
-	http.HandleFunc("/", defaultHandler)
-	log.Printf(fmt.Sprintf("Listening at %s", port))
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
-		log.Fatal("ListenAndServe:", err)
-	}
-
-}
-
-func defaultHandler(w http.ResponseWriter, req *http.Request) {
-	fmt.Fprintln(w, "hello swisscom cloud!")
-}
-
-...
-```
-
-Next we create a binary in the ELF 64-bit LSB format, a standard amd64 linux binary.
-
-To do so, execute the following commands
+In this step, you will prepare a simple application that can be deployed.
+Execute the following commands to clone the sample application:
 
 <pre class="terminal">
-$ cd $GOPATH/github.com/swisscom/cf-sample-app-go.git
-$ GOARCH=amd64 GOOS=linux go build -o ./bin/gocf
+$ go get github.com/swisscom/cf-sample-app-go
+$ cd "$GOPATH"/src/github.com/swisscom/cf-sample-app-go
 </pre>
 
-Now that we have our binary, we can deploy it to <%= vars.product_full %>.
+You now have a functioning git repository that contains a simple <a href="https://golang.org/" target="_blank">Go</a> application as well as a `glide.yaml` file, which is used by our dependency manager <a href="https://github.com/Masterminds/glide" target="_blank">Glide</a>.
 
 <div style="text-align:center;margin:3em;">
   <a href="./deploy.html" class="btn btn-primary">I cloned the App source</a>
