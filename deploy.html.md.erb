@@ -70,14 +70,12 @@ Now visit the app at the URL. You can find the URL in the `urls` property of the
 
 ## Binary buildpack
 
-By building your app locally using the `go build` command, you can also push your application as a binary file using the <a href="../buildpacks/binary/index.html" target="_blank">Binary buildpack</a>. To do so, execute the following commands:
+By building your app locally using the `go build` command, you can also push your application as a binary file using the <a href="../buildpacks/binary/index.html" target="_blank">Binary buildpack</a>. This method allows you to manage dependencies locally and is an alternative to using the standard <a href="../buildpacks/go/index.html" target="_blank">Go buildpack</a>. To try it out, execute the following commands:
 
-```bash
+<pre class="terminal">
 $ GOOS=linux GOARCH=amd64 go build .
 $ cf push my-go-app -b binary_buildpack -c './cf-sample-app-go'
-```
-
-This method allows you to manage dependencies locally and is an alternative to using the standard <a href="../buildpacks/go/index.html" target="_blank">Go buildpack</a>.
+</pre>
 
 <div style="text-align:center;margin:3em;">
   <a href="./logs.html" class="btn btn-primary">I have deployed my App</a>

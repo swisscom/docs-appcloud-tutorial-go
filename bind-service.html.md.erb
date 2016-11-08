@@ -5,26 +5,26 @@ owner: Tobias Fuhrimann
 
 <strong><%= modified_date %></strong>
 
-The <a href="../service-offerings/index.html" target="_blank">service marketplace</a> has a large number of data stores, from Redis and MongoDB, to MariaDB (fork of MySQL) and RabbitMQ. You can run `cf marketplace` to get an overview. In this step you will add a small MariaDB database to your app.
+The <a href="../service-offerings/index.html" target="_blank">service marketplace</a> has a large number of data stores, from Redis and MongoDB, to MariaDB (fork of MySQL) and RabbitMQ. You can run `cf marketplace` to get an overview. In this step you will add a small MongoDB database to your app.
 
 Create the database:
 
 <pre class="terminal">
-$ cf create-service mariadb small mydb
-Creating service instance my-db in org MyOrg / space MySpace as user@mydomain.com...
+$ cf create-service mongodb small my-mongodb
+Creating service instance my-mongodb in org MyOrg / space MySpace as user@mydomain.com...
 OK
 
-Create in progress. Use 'cf services' or 'cf service my-db' to check operation status.
+Create in progress. Use 'cf services' or 'cf service my-mongodb' to check operation status.
 
-Attention: The plan `small` of service `mariadb` is not free.  The instance `mydb` will incur a cost.  Contact your administrator if you think this is in error.
+Attention: The plan `small` of service `mongodb` is not free.  The instance `my-mongodb` will incur a cost.  Contact your administrator if you think this is in error.
 </pre>
 
-This creates a small MariaDB database for you which we now have to bind to our application. Binding means that the credentials and URL of the service will be written dynamically into the environment variables of the app as `VCAP_SERVICES` and can hence be used directly from there.
+This creates a small MongoDB database for you which we now have to bind to our application. Binding means that the credentials and URL of the service will be written dynamically into the environment variables of the app as `VCAP_SERVICES` and can hence be used directly from there.
 
 Let's bind the new service to our existing application:
 
 <pre class="terminal">
-$ cf bind-service my-go-app mymyd
+$ cf bind-service my-go-app my-mongodb
 Binding service my-mongodb to app my-go-app in org MyOrg / space MySpace as user@mydomain.com...
 OK
 TIP: Use 'cf restage my-go-app' to ensure your env variable changes take effect
@@ -46,99 +46,161 @@ Restaging app my-app in org MyOrg / space MySpace as user@mydomain.com...
 ...
 </pre>
 
-Now we want to consume our new Mariadb from within our application. We use the following example code
+Now we want to consume our new MongoDB from within our application. Use glide to add the `mgo` and the `go-cfenv` packages to your dependencies:
 
 <pre class="terminal">
-package main
+$ glide get gopkg.in/mgo.v2 github.com/cloudfoundry-community/go-cfenv
+[INFO] Preparing to install 2 packages.
 
-import (
-    "database/sql"
-    "fmt"
-    "log"
-    "net/http"
-    "net/url"
-    "os"
-
-    cfenv "github.com/cloudfoundry-community/go-cfenv"
-    _ "github.com/go-sql-driver/mysql"
-)
-
-var (
-    buildstamp string
-    githash    string
-)
-
-func main() {
-    log.SetOutput(os.Stdout)
-    var port string
-    if port = os.Getenv("PORT"); len(port) == 0 {
-        port = "4000"
-    }
-
-    cStr := getConnectionStr("mydb")
-    log.Printf("Connect str %s ", cStr)
-    db, err := sql.Open("mysql", cStr)
-    if err != nil {
-        log.Fatal("Can not open DB:", err)
-    }
-    defer db.Close()
-
-    var version string
-    db.QueryRow("SELECT VERSION()").Scan(&version)
-    log.Printf("Connected to :%s\n", version)
-
-    if err := db.Ping(); err != nil {
-        log.Fatal("DB Error Ping", err.Error())
-    }
-
-    http.HandleFunc("/", defaultHandler)
-    log.Printf(fmt.Sprintf("Listening at %s", port))
-    if err := http.ListenAndServe(":"+port, nil); err != nil {
-        log.Fatal("ListenAndServe:", err)
-    }
-
-}
-func getConnectionStr(n string) string {
-      appEnv, err := cfenv.Current()
-      if err != nil {
-          log.Fatal("hr")
-      }
-      mysqlService, err := appEnv.Services.WithName(n)
-      if err != nil {
-          log.Fatal(err)
-      }
-      uri, ok := mysqlService.Credentials["uri"].(string)
-      if !ok {
-          log.Fatal("No valid MariabDB uri\n")
-      }
-      u, err := url.Parse(uri)
-      if err != nil {
-          log.Fatal("No valid MariabDB uri\n")
-      }
-      return fmt.Sprintf("%s@tcp(%s)%s", u.User.String(), u.Host, u.Path)
-  }
-
-func defaultHandler(w http.ResponseWriter, req *http.Request) {
-  fmt.Fprintln(w, "hello Swisscom cloud!")
-}
-
+  ...
 </pre>
 
+Now edit your `main.go` file to use these packages to connect to the database specified in your `VCAP_SERVICES` environment variable. We do this by importing the packages and adding a route for the `/kittens` endpoint which returns the `kittens` collection of our MongoDB.
 
-...
+First we add a generic error handler for fatal errors. Add the following function to your file:
+
+```go
+// handleError handles fatal errors
+func handleError(w http.ResponseWriter, err error) {
+    http.Error(w, err.Error(), http.StatusInternalServerError)
+    log.Fatalln(err.Error())
+}
+```
+
+Then add the needed dependencies into your `import` statement:
+
+```go
+import (
+    "encoding/json"
+    "fmt"
+    "io"
+    "io/ioutil"
+    "log"
+    "net/http"
+    "os"
+
+    mgo "gopkg.in/mgo.v2"
+    "gopkg.in/mgo.v2/bson"
+
+    cfenv "github.com/cloudfoundry-community/go-cfenv"
+)
+```
+
+Now we need to know what a kitten looks like. Create a struct for them:
+
+```go
+// Kitten is a cute kitty
+type Kitten struct {
+    ID   bson.ObjectId `bson:"_id,omitempty" json:"_id"`
+    Name string        `json:"name"`
+}
+```
+
+As a next step, we need to talk to our database that we created above. Create a global variable `dbString` and add the following lines to your `main` method:
+
+```go
+if vcapServices := os.Getenv("VCAP_SERVICES"); len(vcapServices) == 0 {
+    dbString = "localhost"
+} else {
+    appEnv, err := cfenv.Current()
+    if err != nil {
+        log.Fatal(err)
+    }
+    dbService, err := appEnv.Services.WithName("my-mongodb")
+    if err != nil {
+        log.Fatal(err)
+    }
+    uri, ok := dbService.Credentials["uri"].(string)
+    if !ok {
+        log.Fatal("No valid databse URI found")
+    }
+    dbString = uri
+}
+```
+
+The line `if vcapServices := os.Getenv("VCAP_SERVICES"); len(vcapServices) == 0 {` allows you to check if the app is running in the cloud. If not, it's using a local MongoDB and if it is, it's using the one from `VCAP_SERVICES`.
+
+Then we create the handler for our new `/kittens` endpoint. It handles either `GET` or `POST` requests. Create the following function:
+
+```go
+// kittenHandler allows to manage kittnes
+func kittenHandler(w http.ResponseWriter, r *http.Request) {
+    session, err := mgo.Dial(dbString)
+    if err != nil {
+        handleError(w, err)
+    }
+    defer session.Close()
+    c := session.DB("").C("kittens")
+
+    switch r.Method {
+
+    case "GET":
+        var kittens []Kitten
+
+        err = c.Find(bson.M{}).All(&kittens)
+        if err != nil {
+            handleError(w, err)
+        }
+
+        w.Header().Set("Content-type", "application/json; charset=utf-8")
+        err = json.NewEncoder(w).Encode(kittens)
+        if err != nil {
+            handleError(w, err)
+        }
+
+    case "POST":
+        var kitten Kitten
+
+        body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
+        if err != nil {
+            handleError(w, err)
+        }
+        err = r.Body.Close()
+        if err != nil {
+            handleError(w, err)
+        }
+        err = json.Unmarshal(body, &kitten)
+        if err != nil {
+            http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+            return
+        }
+        err = c.Insert(kitten)
+        if err != nil {
+            handleError(w, err)
+        }
+
+        w.WriteHeader(http.StatusCreated)
+        fmt.Fprintf(w, "Kitten '%s' created", kitten.Name)
+
+    default:
+        http.Error(w, "Not Found", http.StatusNotFound)
+    }
+}
+```
+
+As a last step, we add that handler to our server by creating the following line in our `main` function:
+
+```go
+http.HandleFunc("/kittens", kittenHandler)
+```
+
+This ensures that when you access your app using the `/kittens` route, it will return all the kittens stored in your database. Currently there are no kittens so it will return an empty array. Sad...
+
+But you can create new kittens by POST-ing to the `/kittens` endpoint with the kitten's name as a URL query parameter. You can do so using curl or any similar tool:
+
+<pre class="terminal">
+$ curl -X POST "http://localhost:8080/kittens&#63;name&#61;garfield"
+</pre>
+
+and then retrieve your new kitten at the `GET /kittens` endpoint.
+
+Now, all you need to do is push your app to the cloud:
 
 <pre class="terminal">
 $ cf push my-go-app
-...
-$ cf logs my-go-app --recent
-...
-2016-05-25T14:04:00.97+0200 [APP/0]      OUT 2016/05/25 12:04:00 Connect str XXXXX:YYYYY@tcp(10.0.Z.Y:3306)/CF_FFFFFFFFFFF
-2016-05-25T14:04:00.97+0200 [APP/0]      OUT 2016/05/25 12:04:00 Connected to :5.5.42-MariaDB-wsrep
-2016-05-25T14:04:00.97+0200 [APP/0]      OUT 2016/05/25 12:04:00 Listening at 8080
-...
 </pre>
 
-You can access other services like Redis or Mongodb in a similar matter, simply by binding them to your app and accessing them through the environment variables.
+You can access other services like Redis or MariaDB in a similar matter, simply by binding them to your app and accessing them through the environment variables.
 
 <div style="text-align:center;padding:3em;">
   <a href="./manifest.html" class="btn btn-primary">I've bound a service to my App</a>
