@@ -71,18 +71,18 @@ Then add the needed dependencies into your `import` statement:
 
 ```go
 import (
-    "encoding/json"
-    "fmt"
-    "io"
-    "io/ioutil"
-    "log"
-    "net/http"
-    "os"
+  "encoding/json"
+  "fmt"
+  "io"
+  "io/ioutil"
+  "log"
+  "net/http"
+  "os"
 
-    mgo "gopkg.in/mgo.v2"
-    "gopkg.in/mgo.v2/bson"
+  mgo "gopkg.in/mgo.v2"
+  "gopkg.in/mgo.v2/bson"
 
-    cfenv "github.com/cloudfoundry-community/go-cfenv"
+  cfenv "github.com/cloudfoundry-community/go-cfenv"
 )
 ```
 
@@ -91,8 +91,8 @@ Now we need to know what a kitten looks like. Create a struct for them:
 ```go
 // Kitten is a cute kitty
 type Kitten struct {
-    ID   bson.ObjectId `bson:"_id,omitempty" json:"_id"`
-    Name string        `json:"name"`
+  ID   bson.ObjectId `bson:"_id,omitempty" json:"_id"`
+  Name string        `json:"name"`
 }
 ```
 
@@ -100,21 +100,21 @@ As a next step, we need to talk to our database that we created above. Create a 
 
 ```go
 if vcapServices := os.Getenv("VCAP_SERVICES"); len(vcapServices) == 0 {
-    dbString = "localhost"
+  dbString = "localhost"
 } else {
-    appEnv, err := cfenv.Current()
-    if err != nil {
-        log.Fatal(err)
-    }
-    dbService, err := appEnv.Services.WithName("my-mongodb")
-    if err != nil {
-        log.Fatal(err)
-    }
-    uri, ok := dbService.Credentials["uri"].(string)
-    if !ok {
-        log.Fatal("No valid databse URI found")
-    }
-    dbString = uri
+  appEnv, err := cfenv.Current()
+  if err != nil {
+      log.Fatal(err)
+  }
+  dbService, err := appEnv.Services.WithName("my-mongodb")
+  if err != nil {
+    log.Fatal(err)
+  }
+  uri, ok := dbService.Credentials["uri"].(string)
+  if !ok {
+    log.Fatal("No valid databse URI found")
+  }
+  dbString = uri
 }
 ```
 
@@ -125,56 +125,56 @@ Then we create the handler for our new `/kittens` endpoint. It handles either `G
 ```go
 // kittenHandler allows to manage kittnes
 func kittenHandler(w http.ResponseWriter, r *http.Request) {
-    session, err := mgo.Dial(dbString)
+  session, err := mgo.Dial(dbString)
+  if err != nil {
+    handleError(w, err)
+  }
+  defer session.Close()
+  c := session.DB("").C("kittens")
+
+  switch r.Method {
+
+  case "GET":
+    var kittens []Kitten
+
+    err = c.Find(bson.M{}).All(&kittens)
     if err != nil {
-        handleError(w, err)
+      handleError(w, err)
     }
-    defer session.Close()
-    c := session.DB("").C("kittens")
 
-    switch r.Method {
-
-    case "GET":
-        var kittens []Kitten
-
-        err = c.Find(bson.M{}).All(&kittens)
-        if err != nil {
-            handleError(w, err)
-        }
-
-        w.Header().Set("Content-type", "application/json; charset=utf-8")
-        err = json.NewEncoder(w).Encode(kittens)
-        if err != nil {
-            handleError(w, err)
-        }
-
-    case "POST":
-        var kitten Kitten
-
-        body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
-        if err != nil {
-            handleError(w, err)
-        }
-        err = r.Body.Close()
-        if err != nil {
-            handleError(w, err)
-        }
-        err = json.Unmarshal(body, &kitten)
-        if err != nil {
-            http.Error(w, err.Error(), http.StatusUnprocessableEntity)
-            return
-        }
-        err = c.Insert(kitten)
-        if err != nil {
-            handleError(w, err)
-        }
-
-        w.WriteHeader(http.StatusCreated)
-        fmt.Fprintf(w, "Kitten '%s' created", kitten.Name)
-
-    default:
-        http.Error(w, "Not Found", http.StatusNotFound)
+    w.Header().Set("Content-type", "application/json; charset=utf-8")
+    err = json.NewEncoder(w).Encode(kittens)
+    if err != nil {
+      handleError(w, err)
     }
+
+  case "POST":
+    var kitten Kitten
+
+    body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
+    if err != nil {
+      handleError(w, err)
+    }
+    err = r.Body.Close()
+    if err != nil {
+      handleError(w, err)
+    }
+    err = json.Unmarshal(body, &kitten)
+    if err != nil {
+      http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+      return
+    }
+    err = c.Insert(kitten)
+    if err != nil {
+      handleError(w, err)
+    }
+
+    w.WriteHeader(http.StatusCreated)
+    fmt.Fprintf(w, "Kitten '%s' created", kitten.Name)
+
+  default:
+    http.Error(w, "Not Found", http.StatusNotFound)
+  }
 }
 ```
 
