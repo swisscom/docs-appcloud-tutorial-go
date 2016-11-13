@@ -57,17 +57,7 @@ $ glide get gopkg.in/mgo.v2 github.com/cloudfoundry-community/go-cfenv
 
 Now edit your `main.go` file to use these packages to connect to the database specified in your `VCAP_SERVICES` environment variable. We do this by importing the packages and adding a route for the `/kittens` endpoint which returns the `kittens` collection of our MongoDB.
 
-First we add a generic error handler for fatal errors. Add the following function to your file:
-
-```go
-// handleError handles fatal errors
-func handleError(w http.ResponseWriter, err error) {
-    http.Error(w, err.Error(), http.StatusInternalServerError)
-    log.Fatalln(err.Error())
-}
-```
-
-Then add the needed dependencies into your `import` statement:
+First, add the needed dependencies into your `import` statement:
 
 ```go
 import (
@@ -96,92 +86,115 @@ type Kitten struct {
 }
 ```
 
-As a next step, we need to talk to our database that we created above. Create a global variable `dbString` and add the following lines to your `main` method:
+Then we create another struct to hold a server with an mgo session:
 
 ```go
-if vcapServices := os.Getenv("VCAP_SERVICES"); len(vcapServices) == 0 {
-  dbString = "localhost"
-} else {
-  appEnv, err := cfenv.Current()
-  if err != nil {
-      log.Fatal(err)
-  }
-  dbService, err := appEnv.Services.WithName("my-mongodb")
-  if err != nil {
-    log.Fatal(err)
-  }
-  uri, ok := dbService.Credentials["uri"].(string)
-  if !ok {
-    log.Fatal("No valid databse URI found")
-  }
-  dbString = uri
+// Controller is a server with an mgo session
+type Controller struct {
+	session *mgo.Session
 }
 ```
 
-The line `if vcapServices := os.Getenv("VCAP_SERVICES"); len(vcapServices) == 0 {` allows you to check if the app is running in the cloud. If not, it's using a local MongoDB and if it is, it's using the one from `VCAP_SERVICES`.
+As a next step, we need to talk to our database that we created above. In the `main` function, Create a variable `dbString` and dynamically assign it to the value of our db's connection string. We then create a session from that and attach the session to our controller `c`. This controller allows us to inject the session into the kitten handler so that we don't have to call `Dial` on every request. At the bottom, we add the kitten handler to handle the `/kittens` endpoint. Your `main` function should now look something like this:
+
+```go
+func main() {
+	var port string
+	if port = os.Getenv("PORT"); len(port) == 0 {
+		port = "8080"
+	}
+
+	var dbString string
+	if vcapServices := os.Getenv("VCAP_SERVICES"); len(vcapServices) == 0 {
+		dbString = "localhost"
+	} else {
+		appEnv, err := cfenv.Current()
+		if err != nil {
+			log.Fatal(err)
+		}
+		dbService, err := appEnv.Services.WithName("my-mongodb")
+		if err != nil {
+			log.Fatal(err)
+		}
+		uri, ok := dbService.Credentials["uri"].(string)
+		if !ok {
+			log.Fatal("No valid databse URI found")
+		}
+		dbString = uri
+	}
+	session, err := mgo.Dial(dbString)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer session.Close()
+
+	c := Controller{session: session}
+
+	http.HandleFunc("/", indexHandler)
+	http.HandleFunc("/kittens", c.kittenHandler)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
+}
+```
+
+The line `if vcapServices := os.Getenv("VCAP_SERVICES"); len(vcapServices) == 0 {` allows you to check if the app is running in the cloud. If not, it's using a local MongoDB and if it is, it's using the one from `VCAP_SERVICES` through the `cfenv` package.
 
 Then we create the handler for our new `/kittens` endpoint. It handles either `GET` or `POST` requests. Create the following function:
 
 ```go
-// kittenHandler allows to manage kittnes
-func kittenHandler(w http.ResponseWriter, r *http.Request) {
-  session, err := mgo.Dial(dbString)
-  if err != nil {
-    handleError(w, err)
-  }
-  defer session.Close()
-  c := session.DB("").C("kittens")
+// kittenHandler allows to manage kittens
+func (controller *Controller) kittenHandler(w http.ResponseWriter, r *http.Request) {
+	session := controller.session.Clone()
+	c := session.DB("").C("kittens")
 
-  switch r.Method {
+	switch r.Method {
 
-  case "GET":
-    var kittens []Kitten
+	case "GET":
+		var kittens []Kitten
 
-    err = c.Find(bson.M{}).All(&kittens)
-    if err != nil {
-      handleError(w, err)
-    }
+		err := c.Find(bson.M{}).All(&kittens)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-    w.Header().Set("Content-type", "application/json; charset=utf-8")
-    err = json.NewEncoder(w).Encode(kittens)
-    if err != nil {
-      handleError(w, err)
-    }
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		err = json.NewEncoder(w).Encode(kittens)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-  case "POST":
-    var kitten Kitten
+	case "POST":
+		var kitten Kitten
 
-    body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
-    if err != nil {
-      handleError(w, err)
-    }
-    err = r.Body.Close()
-    if err != nil {
-      handleError(w, err)
-    }
-    err = json.Unmarshal(body, &kitten)
-    if err != nil {
-      http.Error(w, err.Error(), http.StatusUnprocessableEntity)
-      return
-    }
-    err = c.Insert(kitten)
-    if err != nil {
-      handleError(w, err)
-    }
+		body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		err = r.Body.Close()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		err = json.Unmarshal(body, &kitten)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+			return
+		}
+		err = c.Insert(kitten)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-    w.WriteHeader(http.StatusCreated)
-    fmt.Fprintf(w, "Kitten '%s' created", kitten.Name)
+		w.WriteHeader(http.StatusCreated)
+		fmt.Fprintf(w, "Kitten '%s' created", kitten.Name)
 
-  default:
-    http.Error(w, "Not Found", http.StatusNotFound)
-  }
+	default:
+		http.Error(w, "Not Found", http.StatusNotFound)
+	}
 }
-```
-
-As a last step, we add that handler to our server by creating the following line in our `main` function:
-
-```go
-http.HandleFunc("/kittens", kittenHandler)
 ```
 
 This ensures that when you access your app using the `/kittens` route, it will return all the kittens stored in your database. Currently there are no kittens so it will return an empty array. Sad...
