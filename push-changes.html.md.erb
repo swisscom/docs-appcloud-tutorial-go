@@ -7,11 +7,11 @@ owner: Tobias Fuhrimann
 
 In this step you’ll learn how to propagate a local change to the application through to <%= vars.product_short %>. As a simple change, we'll modify the message which the app shows.
 
-Change the `indexHandler`'s message in `main.go` to "I am awesome!". Your final result should look something like this:
+Change the `IndexHandler`'s message in `main.go` to "I am awesome!". Your final result should look something like this:
 
 ```go
-func indexHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "I am awesome!")
+func IndexHandler(w http.ResponseWriter, r *http.Request) {
+    fmt.Fprintf(w, "I am awesome!")
 }
 ```
 
