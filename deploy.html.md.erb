@@ -77,6 +77,8 @@ $ GOOS=linux GOARCH=amd64 go build
 $ cf push my-go-app -b binary_buildpack -c './cf-sample-app-go'
 </pre>
 
+The first line tells go to cross-compile your app for linux so that it runs in the cloud. The `-c` flag specifies the command to start your app with. In our case, that's just executing the binary.
+
 <div style="text-align:center;margin:3em;">
   <a href="./logs.html" class="btn btn-primary">I have deployed my App</a>
 </div>
