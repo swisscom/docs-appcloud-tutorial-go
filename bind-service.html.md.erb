@@ -5,7 +5,7 @@ owner: Tobias Fuhrimann
 
 <strong><%= modified_date %></strong>
 
-The <a href="../service-offerings/index.html" target="_blank">service marketplace</a> has a large number of data stores, from Redis and MongoDB, to MariaDB (fork of MySQL) and RabbitMQ. You can run `cf marketplace` to get an overview. In this step you will add a small MongoDB database to your app.
+The <a href="../service-offerings/index.html" target="_blank">service marketplace</a> has a large number of data stores, from Redis and MongoDB, to MariaDB (fork of MySQL) and RabbitMQ. You can run `cf marketplace` to get an overview. In this step you will add a small MongoDB database to your app. When finished, we'll have an app to create and list cute kittens.
 
 Create the database:
 
@@ -34,7 +34,7 @@ TIP: Use 'cf restage my-go-app' to ensure your env variable changes take effect
   <strong>Note</strong>: If you are getting <code>Server error, status code: 409</code>, please try again after a couple of minutes. It takes a while to spin up that MongoDB for you.
 </p>
 
-After that we restage the application as suggested so that it includes the new credentials in its environment variables:
+After that, we restage the application as suggested so that it includes the new credentials in its environment variables:
 
 <pre class="terminal">
 $ cf restage my-go-app
@@ -57,7 +57,7 @@ $ glide get gopkg.in/mgo.v2 github.com/cloudfoundry-community/go-cfenv
 
 Now edit your `main.go` file to use these packages to connect to the database specified in your `VCAP_SERVICES` environment variable. We do this by importing the packages and adding a route for the `/kittens` endpoint which returns the `kittens` collection of our MongoDB.
 
-First, add the needed dependencies into your `import` statement:
+First, add the needed dependencies to your `import` statement:
 
 ```go
 import (
