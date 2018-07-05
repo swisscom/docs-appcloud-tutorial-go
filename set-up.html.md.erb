@@ -26,7 +26,12 @@ Password&gt;
 
 Authenticating is required to use the CLI tool. The `-a` sets the API endpoint to the one of <%= vars.product_full %>.
 
-> For now, you need to disable 2FA if want to log in using the CLI-tool
+If you enable Passeport's two-factor authentication, you have to use the `--sso` flag and follow the instructions:
+
+    cf login -a https://api.lyra-836.appcloud.swisscom.com --sso
+    API endpoint: https://api.lyra-836.appcloud.swisscom.com
+
+    One Time Code ( Get one at https://login.lyra-836.appcloud.swisscom.com/passcode )>
 
 Note that if you’re behind a firewall that requires use of a proxy to connect with external HTTP/HTTPS services, you can set the `HTTP_PROXY` or `HTTPS_PROXY` environment variables in your local development environment before running any command.
 
