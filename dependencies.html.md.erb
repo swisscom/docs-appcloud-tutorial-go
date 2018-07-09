@@ -26,8 +26,10 @@ directory `vendor` otherwise the directory will be empty. Check the
 When an app is deployed, <%= vars.product_short %> reads this file and installs
 the appropriate dependencies using the `dep ensure` command.
 
-Avoid pushing the `vendor` directory by adding an entry in the `.cfignore` file,
-see below.
+You could now push your application `cf push` if you would like to prevent
+pushing the `vendor` directory or other files like the `README.md`, add them to
+the [.cfignore](https://github.com/swisscom/cf-sample-app-go-dep/blob/master/.cfignore)
+file, see below.
 
 ## Glide
 
